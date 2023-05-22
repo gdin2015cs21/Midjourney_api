@@ -53,7 +53,7 @@ class Receiver:
                         prompt = message['content'].split('**')[1].split(' --')[0]
                         url = message['attachments'][0]['url']
                         filename = message['attachments'][0]['filename']
-                        print('attachments', message['attachments'])
+                        # print('attachments', message['attachments'])
                         if id not in self.df.index:
                             self.df.loc[id] = [prompt, url, filename, 0]
 
@@ -91,8 +91,11 @@ class Receiver:
         processed_prompts = []
         for i in self.df.index:
             if self.df.loc[i].is_downloaded == 0:
+                file_path = os.path.join(self.local_path, self.df.loc[i].filename)
+                if os.path.isfile(file_path):
+                    continue
                 response = requests.get(self.df.loc[i].url)
-                with open(os.path.join(self.local_path, self.df.loc[i].filename), "wb") as req:
+                with open(file_path, "wb") as req:
                     print(i, '\t', self.df.loc[i])
                     req.write(response.content)
                 self.df.loc[i, 'is_downloaded'] = 1
