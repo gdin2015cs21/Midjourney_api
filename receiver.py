@@ -10,6 +10,7 @@ import glob
 import argparse
 import sys
 
+
 class Receiver:
 
     def __init__(self, 
@@ -21,8 +22,7 @@ class Receiver:
 
         self.sender_initializer()
 
-        self.df = pd.DataFrame(columns = ['prompt', 'url', 'filename', 'is_downloaded'])
-
+        self.df = pd.DataFrame(columns=['prompt', 'url', 'filename', 'is_downloaded'])
     
     def sender_initializer(self):
 
@@ -31,7 +31,7 @@ class Receiver:
 
         self.channelid=params['channelid']
         self.authorization=params['authorization']
-        self.headers = {'authorization' : self.authorization}
+        self.headers = {'authorization': self.authorization}
 
     def retrieve_messages(self):
         r = requests.get(
@@ -39,10 +39,9 @@ class Receiver:
         jsonn = json.loads(r.text)
         return jsonn
 
-
     def collecting_results(self):
-        message_list  = self.retrieve_messages()
-        self.awaiting_list = pd.DataFrame(columns = ['prompt', 'status'])
+        message_list = self.retrieve_messages()
+        self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
 
             if (message['author']['username'] == 'Midjourney Bot') and ('**' in message['content']):
@@ -54,6 +53,7 @@ class Receiver:
                         prompt = message['content'].split('**')[1].split(' --')[0]
                         url = message['attachments'][0]['url']
                         filename = message['attachments'][0]['filename']
+                        print('attachments', message['attachments'])
                         if id not in self.df.index:
                             self.df.loc[id] = [prompt, url, filename, 0]
 
@@ -73,8 +73,7 @@ class Receiver:
                     if '(Waiting to start)' in message['content']:
                         status = 'Waiting to start'
                     self.awaiting_list.loc[id] = [prompt, status]
-                    
-    
+
     def outputer(self):
         if len(self.awaiting_list) > 0:
             print(datetime.now().strftime("%H:%M:%S"))
@@ -94,6 +93,7 @@ class Receiver:
             if self.df.loc[i].is_downloaded == 0:
                 response = requests.get(self.df.loc[i].url)
                 with open(os.path.join(self.local_path, self.df.loc[i].filename), "wb") as req:
+                    print(i, '\t', self.df.loc[i])
                     req.write(response.content)
                 self.df.loc[i, 'is_downloaded'] = 1
                 processed_prompts.append(self.df.loc[i].prompt)
@@ -108,6 +108,7 @@ class Receiver:
             self.outputer()
             self.downloading_results()
             time.sleep(5)
+
 
 def parse_args(args):
     
