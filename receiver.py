@@ -42,14 +42,14 @@ class Receiver:
         r = requests.get(
             f'https://discord.com/api/v10/channels/{self.channelid}/messages?limit={100}', headers=self.headers)
         jsonn = json.loads(r.text)
-        print(jsonn)
+        # print(jsonn)
         return jsonn
 
     def collecting_results(self):
         message_list = self.retrieve_messages()
         self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
-            print(message)
+            # print(message)
             if (message['author']['username'] == 'Midjourney Bot') and ('**' in message['content']):
                 
                 if len(message['attachments']) > 0:
@@ -118,8 +118,9 @@ class Receiver:
                 sql = "update cm_task set msg_id='{}', msg_hash='{}', content='{}', update_time='{}', state=2 " \
                       "where id in (select id from cm_task where content ISNULL and prompt='{}' order by id limit 1)".\
                     format(msg_id, msg_hash, file_name, datetime.now(), prompt)
+                print(sql)
                 cursor.execute(sql)
-                cursor.fetchall()
+                conn.commit()
                 cursor.close()
                 # 更新数据
 
