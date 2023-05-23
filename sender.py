@@ -44,17 +44,17 @@ class Sender:
                    'channel_id': self.channelid,
                    'session_id': self.session_id,
                    'data': {
-                        'version': self.version,
-                        'id': self.id,
-                        'name': 'imagine',
-                        'type': 1,
-                        'options': [{'type': 3, 'name': 'prompt', 'value': str(prompt) + ' ' + self.flags}],
-                        'attachments': []}
+                       'version': self.version,
+                       'id': self.id,
+                       'name': 'imagine',
+                       'type': 1,
+                       'options': [{'type': 3, 'name': 'prompt', 'value': str(prompt) + ' ' + self.flags}],
+                       'attachments': []}
                    }
         
         r = requests.post('https://discord.com/api/v9/interactions', json=payload, headers=header)
-        while r.status_code != 204:
-            r = requests.post('https://discord.com/api/v9/interactions', json=payload, headers=header)
+        # while r.status_code != 204:
+        #     r = requests.post('https://discord.com/api/v9/interactions', json=payload, headers=header)
 
         print('prompt [{}] successfully sent!'.format(prompt))
 
@@ -65,7 +65,7 @@ class Sender:
         :param msg_id:      id
         :param index:       下序列
         :param msg_hash:
-        :param operate_type:    操作类型, variation微调, upsample放大
+        :param operate_type:    操作类型, variation微调, upsample放大, reroll重置
         :return:
         """
         kwargs = {
@@ -76,6 +76,7 @@ class Sender:
         data = {
             "component_type": 2,
             "custom_id": f"MJ::JOB::{operate_type}::{index}::{msg_hash}"
+            if operate_type != 'reroll' else f"MJ::JOB::{operate_type}::{index}::{msg_hash}::SOLO"
         }
 
         payload = {
@@ -101,6 +102,10 @@ class Sender:
     # 放大
     def send_upscale(self, msg_id, index, msg_hash):
         self.send_(msg_id, index, msg_hash, 'upsample')
+
+    # 重置
+    def send_reroll(self, msg_id, index=0, msg_hash=''):
+        self.send_(msg_id, index, msg_hash, 'reroll')
 
 
 def parse_args(args):

@@ -43,7 +43,7 @@ class Receiver:
         message_list = self.retrieve_messages()
         self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
-
+            # print(message)
             if (message['author']['username'] == 'Midjourney Bot') and ('**' in message['content']):
                 
                 if len(message['attachments']) > 0:
@@ -93,6 +93,7 @@ class Receiver:
             if self.df.loc[i].is_downloaded == 0:
                 file_path = os.path.join(self.local_path, self.df.loc[i].filename)
                 if os.path.isfile(file_path):
+                    self.df.loc[i, 'is_downloaded'] = 1
                     continue
                 response = requests.get(self.df.loc[i].url)
                 with open(file_path, "wb") as req:
