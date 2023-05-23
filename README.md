@@ -48,3 +48,13 @@ For proposals and cooperation:
 email: normalabnormalai@gmail.com
 
 Discord: georgeb#0907
+
+
+# gdin2015cs21
+基于https://github.com/George-iam/Midjourney_api 和 https://github.com/yokonsan/midjourney-api 这两个优秀的项目进行开发
+在第一项目的基础上进行修改调整, 进行了以下修改:
+1. 将第二个项目中的 获取大图功能, 根据某张图另外生成图片功能 还有 重新生成功能, 集成到本项目中
+2. 将接收的的数据插入到了sqlite数据库中, 表结构并不在此项目中, 需要的话可以留言开放, 并不复杂
+3. 将源项目中的一些语法和命名格式进行了修改
+4. 关于另外几个功能, 主要是需要返回值中的ID, 这个尤为重要.
+在这里也对两位作者表示感谢
