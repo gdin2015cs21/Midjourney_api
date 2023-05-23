@@ -1,21 +1,19 @@
 import requests
 import json
-import numpy as np
 import time
 import pandas as pd
 import os
 import re
 from datetime import datetime
-import glob
 import argparse
 import sys
+import sqlite3
+db_path = '/home/admin/project/AI/db.sqlite3'
 
 
 class Receiver:
 
-    def __init__(self, 
-                 params,
-                 local_path):
+    def __init__(self, params, local_path):
         
         self.params = params
         self.local_path = local_path
@@ -23,7 +21,14 @@ class Receiver:
         self.sender_initializer()
 
         self.df = pd.DataFrame(columns=['prompt', 'url', 'filename', 'is_downloaded'])
-    
+
+    # 重连数据库
+    @staticmethod
+    def reconnect_sql():
+        conn = sqlite3.connect(db_path)  # 连接数据库
+        cursor = conn.cursor()  # 创建一个游标对象
+        return conn, cursor
+
     def sender_initializer(self):
 
         with open(self.params, "r") as json_file:
@@ -37,13 +42,14 @@ class Receiver:
         r = requests.get(
             f'https://discord.com/api/v10/channels/{self.channelid}/messages?limit={100}', headers=self.headers)
         jsonn = json.loads(r.text)
+        print(jsonn)
         return jsonn
 
     def collecting_results(self):
         message_list = self.retrieve_messages()
         self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
-            # print(message)
+            print(message)
             if (message['author']['username'] == 'Midjourney Bot') and ('**' in message['content']):
                 
                 if len(message['attachments']) > 0:
@@ -91,14 +97,32 @@ class Receiver:
         processed_prompts = []
         for i in self.df.index:
             if self.df.loc[i].is_downloaded == 0:
-                file_path = os.path.join(self.local_path, self.df.loc[i].filename)
+                # file_path = os.path.join(self.local_path, self.df.loc[i].filename)
+                prompt = '_'.join(self.df.loc[i].filename.split('_')[1:-1])
+                msg_hash, zui = self.df.loc[i].filename.split('_')[-1].split('.')
+                msg_id = i
+                file_name = '{}_{}.{}'.format(msg_id, msg_hash, zui)
+
+                file_path = os.path.join(self.local_path, file_name)
                 if os.path.isfile(file_path):
                     self.df.loc[i, 'is_downloaded'] = 1
                     continue
+
                 response = requests.get(self.df.loc[i].url)
                 with open(file_path, "wb") as req:
                     print(i, '\t', self.df.loc[i])
                     req.write(response.content)
+
+                # 更新数据
+                conn, cursor = self.reconnect_sql()
+                sql = "update cm_task set msg_id='{}', msg_hash='{}', content='{}', update_time='{}', state=2 " \
+                      "where id in (select id from cm_task where content ISNULL and prompt='{}' order by id limit 1)".\
+                    format(msg_id, msg_hash, file_name, datetime.now(), prompt)
+                cursor.execute(sql)
+                cursor.fetchall()
+                cursor.close()
+                # 更新数据
+
                 self.df.loc[i, 'is_downloaded'] = 1
                 processed_prompts.append(self.df.loc[i].prompt)
         if len(processed_prompts) > 0:

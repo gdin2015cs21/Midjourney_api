@@ -1,24 +1,9 @@
 import requests
-import json
-import time
 import re
-import argparse
-import sys
 
 
 class Sender:
-
-    def __init__(self, 
-                 params):
-        
-        self.params = params
-        self.sender_initializer()
-
-    def sender_initializer(self):
-
-        with open(self.params, "r") as json_file:
-            params = json.load(json_file)
-
+    def __init__(self, params):
         self.channelid = params['channelid']
         self.authorization = params['authorization']
         self.application_id = params['application_id']
@@ -108,20 +93,20 @@ class Sender:
         self.send_(msg_id, index, msg_hash, 'reroll')
 
 
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--params',        help='Path to discord authorization and channel parameters', required=True)
-    parser.add_argument('--prompt',           help='prompt to generate', required=True)
-        
-    return parser.parse_args(args)
-
-
-if __name__ == "__main__":
-
-    args = sys.argv[1:]
-    args = parse_args(args)
-    params = args.params
-    prompt = args.prompt
-
-    sender = Sender(params)
-    sender.generate(prompt)
+# def parse_args(args):
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--params',        help='Path to discord authorization and channel parameters', required=True)
+#     parser.add_argument('--prompt',           help='prompt to generate', required=True)
+#
+#     return parser.parse_args(args)
+#
+#
+# if __name__ == "__main__":
+#
+#     args = sys.argv[1:]
+#     args = parse_args(args)
+#     params = args.params
+#     prompt = args.prompt
+#
+#     sender = Sender(params)
+#     sender.generate(prompt)
