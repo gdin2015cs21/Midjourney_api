@@ -48,6 +48,7 @@ class Receiver:
 
     def collecting_results(self):
         message_list = self.retrieve_messages()
+        message_list.reverse()      # 倒叙 mj是最后生成的在最前面
         self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
             # print(message)
