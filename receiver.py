@@ -136,7 +136,7 @@ class Receiver:
             self.collecting_results()
             self.outputer()
             self.downloading_results()
-            time.sleep(5)
+            time.sleep(30)
 
 
 def parse_args(args):
