@@ -8,6 +8,7 @@ from datetime import datetime
 import argparse
 import sys
 import sqlite3
+import traceback
 db_path = '/home/admin/project/AI/db.sqlite3'
 
 
@@ -132,11 +133,20 @@ class Receiver:
             print('=========================================')
   
     def main(self):
+        try_time = 10
         while True:
-            self.collecting_results()
-            self.outputer()
-            self.downloading_results()
-            time.sleep(30)
+            if try_time <= 0:
+                break
+            try:
+                self.collecting_results()
+                self.outputer()
+                self.downloading_results()
+                time.sleep(30)
+                try_time = 10
+            except:
+                print('{} :: 接收流程出现错误, 错误原因为: {}\n 休眠2分钟后进行重试'.format(datetime.now(), traceback.format_exc()))
+                print('{} :: 剩余重试次数为{}'.format(datetime.now(), try_time))
+                time.sleep(60 * 2)
 
 
 def parse_args(args):
