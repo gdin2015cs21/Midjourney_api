@@ -118,7 +118,7 @@ class Receiver:
                 # 更新数据
                 conn, cursor = self.reconnect_sql()
                 sql = "update cm_task set msg_id='{}', msg_hash='{}', content='{}', update_time='{}', state=2 " \
-                      "where id in (select id from cm_task where content ISNULL and prompt='{}' order by id limit 1)".\
+                      "where id in (select id from cm_task where content ISNULL and prompt like '%{}%' order by id limit 1)".\
                     format(msg_id, msg_hash, file_name, datetime.now(), prompt)
                 print(sql)
                 cursor.execute(sql)
