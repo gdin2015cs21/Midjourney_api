@@ -78,6 +78,7 @@ class Receiver:
                 else:
                     id = message['id']
                     prompt = message['content'].split('**')[1].split(' --')[0]
+                    status = 'unknown status'
                     if '(Waiting to start)' in message['content']:
                         status = 'Waiting to start'
                     self.awaiting_list.loc[id] = [prompt, status]
