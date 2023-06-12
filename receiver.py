@@ -85,6 +85,23 @@ class Receiver:
             print(datetime.now().strftime("%H:%M:%S"))
             print('prompts in progress:')
             print(self.awaiting_list)
+            for i in self.awaiting_list.index:
+                prompt = self.awaiting_list.loc[i].prompt
+                prompt = prompt.replace('_', ' ')
+                prompt = " ".join(prompt.split())
+                prompt = re.sub(r'[^a-zA-Z0-9\s]+', '', prompt)
+                prompt = prompt.lower()
+                prompt = prompt.replace(' ', '_')
+                status = self.awaiting_list.loc[i].status
+
+                conn, cursor = self.reconnect_sql()
+                sql = "update cm_task set schedule='{}' where id in (select id from cm_task where content ISNULL and prompt='{}' order by id limit 1)". \
+                    format(status, prompt)
+                print('更新状态', sql)
+                cursor.execute(sql)
+                conn.commit()
+                cursor.close()
+
             print('=========================================')
 
         waiting_for_download = [self.df.loc[i].prompt for i in self.df.index if self.df.loc[i].is_downloaded == 0]
@@ -98,7 +115,13 @@ class Receiver:
         for i in self.df.index:
             if self.df.loc[i].is_downloaded == 0:
                 # file_path = os.path.join(self.local_path, self.df.loc[i].filename)
-                prompt = '_'.join(self.df.loc[i].filename.split('_')[1:-1])
+                prompt = self.df.loc[i].prompt
+                prompt = prompt.replace('_', ' ')
+                prompt = " ".join(prompt.split())
+                prompt = re.sub(r'[^a-zA-Z0-9\s]+', '', prompt)
+                prompt = prompt.lower()
+                prompt = prompt.replace(' ', '_')
+
                 msg_hash, zui = self.df.loc[i].filename.split('_')[-1].split('.')
                 msg_id = i
                 file_name = '{}_{}.{}'.format(msg_id, msg_hash, zui)
