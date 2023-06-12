@@ -8,6 +8,7 @@ from datetime import datetime
 import argparse
 import sys
 import sqlite3
+import traceback
 db_path = '/home/admin/project/AI/db.sqlite3'
 
 
@@ -47,6 +48,7 @@ class Receiver:
 
     def collecting_results(self):
         message_list = self.retrieve_messages()
+        message_list.reverse()      # 倒叙 mj是最后生成的
         self.awaiting_list = pd.DataFrame(columns=['prompt', 'status'])
         for message in message_list:
             # print(message)
@@ -76,6 +78,7 @@ class Receiver:
                 else:
                     id = message['id']
                     prompt = message['content'].split('**')[1].split(' --')[0]
+                    status = 'unknown status'
                     if '(Waiting to start)' in message['content']:
                         status = 'Waiting to start'
                     self.awaiting_list.loc[id] = [prompt, status]
@@ -139,7 +142,7 @@ class Receiver:
                 # 更新数据
                 conn, cursor = self.reconnect_sql()
                 sql = "update cm_task set msg_id='{}', msg_hash='{}', content='{}', update_time='{}', state=2 " \
-                      "where id in (select id from cm_task where content ISNULL and prompt='{}' order by id limit 1)".\
+                      "where id in (select id from cm_task where content ISNULL and prompt like '%{}%' order by id limit 1)".\
                     format(msg_id, msg_hash, file_name, datetime.now(), prompt)
                 print(sql)
                 cursor.execute(sql)
@@ -155,11 +158,20 @@ class Receiver:
             print('=========================================')
   
     def main(self):
+        try_time = 10
         while True:
-            self.collecting_results()
-            self.outputer()
-            self.downloading_results()
-            time.sleep(5)
+            if try_time <= 0:
+                break
+            try:
+                self.collecting_results()
+                self.outputer()
+                self.downloading_results()
+                time.sleep(30)
+                try_time = 10
+            except:
+                print('{} :: 接收流程出现错误, 错误原因为: {}\n 休眠2分钟后进行重试'.format(datetime.now(), traceback.format_exc()))
+                print('{} :: 剩余重试次数为{}'.format(datetime.now(), try_time))
+                time.sleep(60 * 2)
 
 
 def parse_args(args):
